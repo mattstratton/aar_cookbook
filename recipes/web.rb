@@ -42,3 +42,7 @@ file '/etc/apache2/sites-enabled/AAR-apache.conf' do
   content config_content
   action :create
 end
+
+service 'apache2' do
+  action [ :enable, :start ]
+end

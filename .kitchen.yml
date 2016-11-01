@@ -1,5 +1,7 @@
 ---
 driver:
+  # name: docker
+  # use_sudo: false
   name: vagrant
 
 provisioner:
@@ -10,12 +12,11 @@ verifier:
 
 platforms:
   - name: ubuntu-16.04
-  - name: centos-7.2
 
 suites:
   - name: default
     run_list:
-      - recipe[aar_cookbook::default]
+      - recipe[aar_cookbook::web]
     verifier:
       inspec_tests:
         - test/recipes

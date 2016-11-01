@@ -23,18 +23,6 @@ end
 config_content = <<-EOH
 <VirtualHost *:80>
   ServerName /
-  WSGIDaemonProcess /AAR user=www-data group=www-data threads=5
-  WSGIProcessGroup /AAR
-  WSGIScriptAlias / /var/www/AAR/awesomeapp.wsgi
-  <Directory /var/www/AAR>
-    WSGIApplicationGroup %{GLOBAL}
-    WSGIScriptReloading On
-    Order deny,allow
-    Allow from all
-  </Directory>
-
-  CustomLog ${APACHE_LOG_DIR}/access.log combined
-  ServerAdmin ops@example.com
 </VirtualHost>
 EOH
 
@@ -44,5 +32,5 @@ file '/etc/apache2/sites-enabled/AAR-apache.conf' do
 end
 
 service 'apache2' do
-  action [ :enable, :start ]
+  action [:enable, :start]
 end

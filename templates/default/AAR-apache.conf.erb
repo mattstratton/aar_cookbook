@@ -1,0 +1,15 @@
+<VirtualHost *:<%= node['aar_cookbook']['web_port'] %>>
+  ServerName /
+  WSGIDaemonProcess /AAR user=<%= node['aar_cookbook']['web_user'] %> group=<%= node['aar_cookbook']['web_group'] %> threads=<%= node['aar_cookbook']['web_threads'] %>
+  WSGIProcessGroup /AAR
+  WSGIScriptAlias / <%= node['aar_cookbook']['web_dir'] %>/awesomeapp.wsgi
+  <Directory <%= node['aar_cookbook']['web_dir'] %>>
+    WSGIApplicationGroup %{GLOBAL}
+    WSGIScriptReloading On
+    Order deny,allow
+    Allow from all
+  </Directory>
+
+  CustomLog ${APACHE_LOG_DIR}/access.log combined
+  ServerAdmin <%= node['aar_cookbook']['server_admin_email'] %>
+</VirtualHost>

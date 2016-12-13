@@ -26,7 +26,7 @@ describe 'aar_cookbook::web' do
       expect(chef_run).to install_package('apache2')
     end
     it 'creates the AAR configuration file for apache' do
-      expect(chef_run).to create_file('/etc/apache2/sites-enabled/AAR-apache.conf')
+      expect(chef_run).to create_template('/etc/apache2/sites-enabled/AAR-apache.conf')
     end
     it 'starts and enables the apache2 service' do
       expect(chef_run).to start_service('apache2')
@@ -41,7 +41,7 @@ describe 'aar_cookbook::web' do
       expect(chef_run).to install_package('httpd')
     end
     it 'creates the AAR configuration file for apache' do
-      expect(chef_run).to create_file('/etc/httpd/sites-enabled/AAR-apache.conf')
+      expect(chef_run).to create_template('/etc/httpd/sites-enabled/AAR-apache.conf')
     end
     it 'starts and enables the httpd service' do
       expect(chef_run).to start_service('httpd')

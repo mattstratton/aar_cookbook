@@ -16,6 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+apt_update 'update' if platform_family?('debian')
+
 case node['platform_family']
 when 'debian'
   apache_package = 'apache2'
@@ -28,23 +30,79 @@ package apache_package do
   action :install
 end
 
+%w(
+  python
+  libapache2-mod-wsgi
+  python-pip
+  python-mysqldb
+  git
+).each do |p|
+  package p do
+    action :install
+  end
+end
+
 if apache_package == 'httpd'
   directory "/etc/#{apache_package}/sites-enabled/" do
     action :create
   end
 end
 
-config_content = <<-EOH
-<VirtualHost *:80>
-  ServerName /
-</VirtualHost>
-EOH
-
-file "/etc/#{apache_package}/sites-enabled/AAR-apache.conf" do
-  content config_content
+group node['aar_cookbook']['web_group'] do
   action :create
 end
 
+user node['aar_cookbook']['web_user'] do
+  system true
+  shell '/usr/sbin/nologin'
+end
+
+directory node['aar_cookbook']['web_dir'] do
+  owner node['aar_cookbook']['web_user']
+  group node['aar_cookbook']['web_group']
+  mode '0755'
+  recursive true
+end
+
+directory node['aar_cookbook']['source_code_directory'] do
+  action :create
+  recursive true
+end
+
+git node['aar_cookbook']['source_code_directory'] do
+  repository 'https://github.com/mattstratton/Awesome-Appliance-Repair.git'
+  revision 'master'
+  action :sync
+  notifies :run, 'execute[copy_aar-code]', :immediately
+end
+
+execute 'copy_aar-code' do
+  command "cp -r #{node['aar_cookbook']['source_code_directory']}/AAR/. #{node['aar_cookbook']['web_dir']}"
+  action :nothing
+end
+
+template "#{node['aar_cookbook']['web_dir']}/AAR_config.py" do
+  source 'AAR_config.py.erb'
+  owner node['aar_cookbook']['web_user']
+  group node['aar_cookbook']['web_group']
+  mode '0644'
+end
+
 service apache_package do
+  supports :restart => true
   action [:enable, :start]
+end
+
+execute 'remove_default_apache' do
+  command 'rm /etc/apache2/sites-enabled/000-default.conf'
+  only_if do
+    File.exist?('/etc/apache2/sites-enabled/000-default.conf')
+  end
+  notifies :restart, "service[#{apache_package}]"
+end
+
+template "/etc/#{apache_package}/sites-enabled/#{node['aar_cookbook']['apache_config_file']}" do
+  source 'AAR-apache.conf.erb'
+  action :create
+  notifies :restart, "service[#{apache_package}]"
 end

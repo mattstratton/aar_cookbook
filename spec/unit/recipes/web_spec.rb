@@ -33,4 +33,19 @@ describe 'aar_cookbook::web' do
       expect(chef_run).to enable_service('apache2')
     end
   end
+
+  context 'on CentOS 7' do
+    let(:chef_run) { ChefSpec::ServerRunner.new(platform: 'centos', version: '7.2.1511').converge(described_recipe) }
+
+    it 'installs httpd' do
+      expect(chef_run).to install_package('httpd')
+    end
+    it 'creates the AAR configuration file for apache' do
+      expect(chef_run).to create_file('/etc/httpd/sites-enabled/AAR-apache.conf')
+    end
+    it 'starts and enables the httpd service' do
+      expect(chef_run).to start_service('httpd')
+      expect(chef_run).to enable_service('httpd')
+    end
+  end
 end

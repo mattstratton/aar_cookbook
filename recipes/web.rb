@@ -16,8 +16,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-package 'apache2' do
+case node['platform_family']
+when 'debian'
+  apache_package = 'apache2'
+when 'rhel'
+  apache_package = 'httpd'
+else Chef::Log.fatal("The platform family #{node['platform_family']} is not supported")
+end
+
+package apache_package do
   action :install
+end
+
+if apache_package == 'httpd'
+  directory "/etc/#{apache_package}/sites-enabled/" do
+    action :create
+  end
 end
 
 config_content = <<-EOH
@@ -26,11 +40,11 @@ config_content = <<-EOH
 </VirtualHost>
 EOH
 
-file '/etc/apache2/sites-enabled/AAR-apache.conf' do
+file "/etc/#{apache_package}/sites-enabled/AAR-apache.conf" do
   content config_content
   action :create
 end
 
-service 'apache2' do
+service apache_package do
   action [:enable, :start]
 end
